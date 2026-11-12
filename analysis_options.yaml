@@ -1,0 +1,10 @@
+analyzer:
+  exclude:
+    - build/**
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    - public_member_api_docs
+    - prefer_final_fields
+    - avoid_print

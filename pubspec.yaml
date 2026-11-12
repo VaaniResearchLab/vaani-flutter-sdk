@@ -1,0 +1,26 @@
+name: vaani_flutter_sdk
+description: >-
+  Flutter SDK for Vaani voice agents. Dispatches a Vaani agent with your
+  API key and agent ID, then joins the LiveKit room on iOS and Android.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.38.0"
+
+platforms:
+  android:
+  ios:
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.6.0
+  livekit_client: ^2.13.2
+  web_socket_channel: ^3.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
