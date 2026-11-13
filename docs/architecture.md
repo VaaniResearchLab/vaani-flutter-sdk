@@ -9,18 +9,16 @@ flowchart TB
   end
   subgraph SDK["vaani_flutter_sdk"]
     VS["VaaniVoiceSession<br/>(state, transcripts, mic, audio options)"]
-    TS["VaaniTokenSource<br/>(adapter for LiveKit's agent Session)"]
     CP["VaaniCredentialsProvider<br/>TriggerCall · Session · custom"]
     VC["VaaniClient<br/>(HTTP, X-API-Key, typed errors)"]
   end
-  LK["livekit_client Room<br/>(WebRTC, audio, permissions)"]
+  LK["WebRTC room<br/>(audio, permissions)"]
   API["Vaani External API<br/>api.vaanivoice.ai"]
-  LKS["LiveKit server<br/>+ Vaani agent"]
+  LKS["Vaani media server<br/>+ Vaani agent"]
   BE["Your backend<br/>(production)"]
 
   UI --> VS
   VS --> CP
-  TS --> CP
   CP --> VC
   CP -.custom.-> BE
   BE -.-> API
@@ -32,10 +30,10 @@ flowchart TB
 | Layer | Type | Job |
 |---|---|---|
 | HTTP | `VaaniClient`, `client.sessions` | Calls the Vaani External API. Maps HTTP status codes to `VaaniException` subclasses. A Dart port of the Python `vaani-sdk`. |
-| Dispatch | `VaaniCredentialsProvider` | Gets a Vaani agent into a LiveKit room and returns `VaaniRoomCredentials` (server URL, participant token, room name). `release()` cleans up afterwards. |
-| Session | `VaaniVoiceSession` | Joins that room through `livekit_client`, publishes the mic, tracks the agent, and exposes state, transcripts and speaking indicators. |
+| Dispatch | `VaaniCredentialsProvider` | Gets a Vaani agent into a WebRTC room and returns `VaaniRoomCredentials` (server URL, participant token, room name). `release()` cleans up afterwards. |
+| Session | `VaaniVoiceSession` | Joins that room over WebRTC, publishes the mic, tracks the agent, and exposes state, transcripts and speaking indicators. |
 
-There's no native code. Everything platform-specific (audio sessions, permissions, echo cancellation, WebRTC) comes from `livekit_client`, which is why one Dart package covers iOS and Android.
+There's no native code. Everything platform-specific (audio sessions, permissions, echo cancellation, WebRTC) comes from the WebRTC dependency, which is why one Dart package covers iOS and Android.
 
 ## Call lifecycle
 
@@ -45,7 +43,7 @@ sequenceDiagram
   participant S as VaaniVoiceSession
   participant P as CredentialsProvider
   participant V as Vaani API
-  participant L as LiveKit
+  participant L as WebRTC room
   participant A as Vaani agent
 
   App->>S: start()
@@ -77,8 +75,10 @@ stateDiagram-v2
   waitingForAgent --> active: agent joins
   active --> reconnecting: network drop
   reconnecting --> active: reconnected
-  active --> ended: end() / agent leaves / room closes
-  waitingForAgent --> failed: agentJoinTimeout (default 30 s)
+  active --> ended: end() / agent leaves / room closes / session_ended event
+  waitingForAgent --> failed: agentJoinTimeout (default 30 s) / agent_timeout event
+  reconnecting --> waitingForAgent: reconnected, agent gone
+  waitingForAgent --> ended: end() / room closes
   dispatching --> failed: dispatch error
   connecting --> failed: connection error
   ended --> [*]
@@ -89,9 +89,9 @@ A session is **single-use**. Calling `start()` twice throws `StateError`, so cre
 
 ## Design decisions
 
-- **Dispatch is pluggable.** The API key can't be kept secret in a mobile app, so the session never needs one. It only needs something that returns LiveKit credentials. The two API-key providers are conveniences for development.
-- **Wire formats mirror the Python SDK.** Endpoints, JSON field names and error semantics match `vaani-sdk` (currently 0.3.2), so backend and mobile teams share one vocabulary. See the [mapping table](python-sdk-mapping.md).
-- **Audio processing is explicit.** Echo cancellation and noise suppression come from `VaaniAudioOptions`, not LiveKit's defaults, so a dependency upgrade can't change call quality silently.
+- **Dispatch is pluggable.** The API key can't be kept secret in a mobile app, so the session never needs one. It only needs something that returns room credentials. The two API-key providers are conveniences for development.
+- **Wire formats mirror the Python SDK.** Endpoints, JSON field names and error semantics match `vaani-sdk` (currently 0.3.3), so backend and mobile teams share one vocabulary. See the [mapping table](python-sdk-mapping.md).
+- **Audio processing is explicit.** Echo cancellation and noise suppression come from `VaaniAudioOptions`, not the WebRTC library's defaults, so a dependency upgrade can't change call quality silently.
 - **Agent detection has a fallback.** The agent is the participant whose kind is `ParticipantKind.AGENT`. If no participant has that kind, the first remote participant counts, since each room is created for one agent.
-- **One transcript source per speaker.** LiveKit agents can publish each transcript twice, as legacy transcription events and on the `lk.transcription` text stream, with unrelated segment IDs. The session locks each speaker to whichever arrives first. Without this, every line appeared twice in live tests against Vaani.
-- **The raw `Room` stays reachable.** `session.room` exposes the LiveKit room for anything the wrapper doesn't cover: RPC, data messages, custom tracks.
+- **One transcript source per speaker.** Agents can publish each transcript twice, over two different channels, with unrelated segment IDs. The session locks each speaker to whichever arrives first. Without this, every line appeared twice in live tests against Vaani.
+- **The raw `Room` stays reachable.** `session.room` exposes the underlying WebRTC room for anything the wrapper doesn't cover: RPC, data messages, custom tracks.

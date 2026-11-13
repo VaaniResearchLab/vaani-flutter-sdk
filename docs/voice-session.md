@@ -18,7 +18,7 @@ VaaniVoiceSession(credentialsProvider: myProvider);
 | `audioOptions` | all processing on | Echo cancellation, noise suppression and more; see [Audio processing](audio-processing.md) |
 | `agentJoinTimeout` | 30 s | Fail if no agent joins in time. `null` waits forever |
 | `endWhenAgentLeaves` | `true` | End the call when the agent hangs up |
-| `roomOptions` | adaptive stream + dynacast | Passed to LiveKit's `Room` (`audioOptions` overrides its audio capture defaults) |
+| `roomOptions` | SDK defaults | Advanced options for the underlying WebRTC room (`audioOptions` overrides its audio capture defaults) |
 
 ## Lifecycle
 
@@ -37,7 +37,7 @@ await session.dispose();               // always call; ends the call if still ru
 | `dispatching`, `connecting` | "Connecting…" |
 | `waitingForAgent` | "Waiting for the assistant…" |
 | `active` | Live call UI |
-| `reconnecting` | "Reconnecting…" (LiveKit retries automatically) |
+| `reconnecting` | "Reconnecting…" (the SDK retries automatically) |
 | `ended` | Call ended |
 | `failed` | Error, from `session.error` |
 
@@ -50,15 +50,15 @@ The [architecture guide](architecture.md#state-machine) has the full state diagr
 | `state` | `VaaniVoiceSessionState` | See above |
 | `error` | `Object?` | Set when `state == failed` |
 | `credentials` | `VaaniRoomCredentials?` | After dispatch |
-| `roomName` | `String?` | The LiveKit room the agent was sent to. Log it; Vaani support can trace calls by it |
+| `roomName` | `String?` | The room the agent was sent to. It is also the call's `call_id` in call history. Log it; Vaani support can trace calls by it |
 | `agent` | `RemoteParticipant?` | The agent once it has joined |
 | `isMicrophoneEnabled` | `bool` | Local mic published and unmuted |
 | `isUserSpeaking` | `bool` | Server-reported: the user is speaking now |
 | `isAgentSpeaking` | `bool` | Server-reported: the agent is speaking now |
 | `userAudioLevel` | `double` | 0.0–1.0, server-reported |
-| `room` | `lk.Room` | The raw LiveKit room |
+| `room` | `Room` | The underlying WebRTC room |
 
-`isUserSpeaking` and `userAudioLevel` are computed on the LiveKit server, so they double as proof that the user's audio is arriving. They're the fastest way to diagnose "the agent can't hear me".
+`isUserSpeaking` and `userAudioLevel` are computed on the server, so they double as proof that the user's audio is arriving. They're the fastest way to diagnose "the agent can't hear me".
 
 ## Microphone
 
@@ -83,7 +83,7 @@ session.transcripts.listen((t) {
 | `text` | Current text |
 | `isFinal` | `false` while the text is still changing (show it greyed out) |
 | `fromAgent` | `true` for the agent, `false` for the user |
-| `participantIdentity` | LiveKit identity of the speaker |
+| `participantIdentity` | Identity of the speaker in the room |
 
 Both the agent's speech and the user's speech come through. Transcripts are a broadcast stream, so subscribe before `start()` to catch the greeting.
 
@@ -101,20 +101,13 @@ session.sessionEvents.listen((e) {
 
 - Microphone permission prompts (through WebRTC).
 - Echo cancellation and noise suppression (through `audioOptions`).
-- Reconnection after network drops (LiveKit), shown as `reconnecting`.
+- Reconnection after network drops, shown as `reconnecting`.
 - Ending the call when the agent leaves, the room closes, or Vaani sends `session_ended`.
 - Releasing the dispatch exactly once, even if several end paths fire together.
 - De-duplicating transcripts when the agent sends them over two channels.
 
 ## Going beyond the wrapper
 
-`session.room` is a normal `livekit_client` `Room`:
+`session.room` is the underlying WebRTC room. Use it for anything the session doesn't wrap, such as audio tracks, RPC, data messages and custom events.
 
-```dart
-import 'package:livekit_client/livekit_client.dart' as lk;
-
-session.room.localParticipant?.sendText('hello', options: lk.SendTextOptions(topic: 'lk.chat'));
-session.room.createListener().on<lk.DataReceivedEvent>((e) { /* ... */ });
-```
-
-Add your own listeners with `room.createListener()`, and dispose them yourself. The session only cleans up its own.
+If you add your own listeners to it, dispose them yourself. The session only cleans up its own.

@@ -1,11 +1,11 @@
 # Dispatch and credentials
 
-"Dispatch" means asking Vaani to send an agent into a LiveKit room and getting back credentials to join it. Every path in the SDK ends in the same value:
+"Dispatch" means asking Vaani to send an agent into a WebRTC room and getting back credentials to join it. Every path in the SDK ends in the same value:
 
 ```dart
 class VaaniRoomCredentials {
   final String serverUrl;        // wss://server.vaanivoice.ai
-  final String participantToken; // LiveKit JWT
+  final String participantToken; // participant JWT
   final String roomName;         // webrtc-1794481532-5effcd48
   final String? sessionToken;    // session flow only
   final String? liveCaptionsUrl;
@@ -61,6 +61,21 @@ You also get:
 - **Session events:** `session.sessionEvents` streams `agent_ready`, `agent_timeout` and `session_ended` from the session WebSocket. The SDK ends the call on `session_ended` and fails it on `agent_timeout`.
 - **A grace period:** `session.end(explicitEnd: false)` leaves the Vaani session resumable for `gracePeriod`. The default, `explicitEnd: true`, ends it immediately.
 
+`withApiKey` always creates sessions with `ui_type: "fullpage"`. For `widget`, build the provider yourself:
+
+```dart
+final client = VaaniClient(apiKey: key);
+final session = VaaniVoiceSession(
+  credentialsProvider: SessionCredentialsProvider(
+    client: client,
+    agentId: agentId,
+    uiType: VaaniUiType.widget,
+    gracePeriod: const Duration(minutes: 1),
+  ),
+);
+// You own this client: call client.close() after session.dispose().
+```
+
 Use it when you need reconnection or server-side lifecycle events.
 
 | | `trigger-call` | Session flow |
@@ -73,7 +88,7 @@ Use it when you need reconnection or server-side lifecycle events.
 
 ## Production: dispatch from your backend
 
-**Don't ship the Vaani API key in your app.** Anything in an iOS or Android binary can be extracted. Have your backend dispatch the agent and return only the LiveKit credentials:
+**Don't ship the Vaani API key in your app.** Anything in an iOS or Android binary can be extracted. Have your backend dispatch the agent and return only the room credentials:
 
 ```mermaid
 sequenceDiagram
@@ -170,20 +185,3 @@ final r = await client.triggerTelephonyCall(
 print(r.callId);      // outbound-1776774443-863aa698
 print(r.dispatchId);  // dispatch-outbound-...
 ```
-
-## Using LiveKit's agent `Session` instead
-
-If you'd rather use LiveKit's own agent API and UI components, `VaaniTokenSource` adapts any provider:
-
-```dart
-import 'package:livekit_client/livekit_client.dart' as lk;
-
-final source = VaaniTokenSource(TriggerCallCredentialsProvider(client: client, agentId: id));
-final lkSession = lk.Session.fromFixedTokenSource(source);
-await lkSession.start();
-// ...
-await lkSession.end();
-await source.release();   // you own cleanup on this path
-```
-
-Each `fetch()` dispatches a new agent into a new room.

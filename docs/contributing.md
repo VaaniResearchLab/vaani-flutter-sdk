@@ -50,7 +50,7 @@ for v in OLD NEW; do pip download --no-deps --no-binary :all: vaani-sdk==$v; don
 diff -ru vaani_sdk-OLD/vaani_sdk vaani_sdk-NEW/vaani_sdk
 ```
 
-Port changes to trigger-call, the session endpoints, models and errors. Ignore the admin endpoints. Bump the version reference in `README.md`, `CLAUDE.md` and `docs/python-sdk-mapping.md`, and add a CHANGELOG entry.
+Port changes to trigger-call, the session endpoints, models and errors. Ignore the admin endpoints. Bump the version reference in `README.md`, `docs/architecture.md` and `docs/python-sdk-mapping.md`, and add a CHANGELOG entry.
 
 ## Testing against the live API
 

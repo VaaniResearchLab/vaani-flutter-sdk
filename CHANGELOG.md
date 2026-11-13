@@ -1,3 +1,14 @@
+## Unreleased
+
+- Docs only, no code changes. README rewritten to match docs.vaanivoice.ai/flutter-sdk:
+  git install, authentication, call states, dispatch options, full error table,
+  and where to get call history, transcripts and agent settings.
+- Guides: Python SDK reference updated to 0.3.3 (no API changes from 0.3.2);
+  dashboard link is platform.vaani.dev; `widget` UI type documented through
+  `SessionCredentialsProvider`; state diagram covers `agent_timeout`,
+  `session_ended` and reconnecting without an agent.
+- Example app README replaced with run instructions.
+
 ## 0.1.0
 
 - Initial release: `VaaniClient` (health, trigger-call, WebRTC sessions),

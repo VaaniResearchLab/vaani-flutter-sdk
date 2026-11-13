@@ -11,11 +11,11 @@ Everything is on:
 | `echoCancellation` | on | Removes the agent's voice coming back through the mic on speakerphone |
 | `noiseSuppression` | on | Removes steady background noise (fans, traffic, crowd) |
 | `autoGainControl` | on | Evens out quiet and loud speakers |
-| `highPassFilter` | on | Cuts low-frequency rumble. This differs from LiveKit's default, which is off |
+| `highPassFilter` | on | Cuts low-frequency rumble. This differs from the WebRTC library's default, which is off |
 | `voiceIsolation` | on | Platform voice isolation, where supported |
 | `typingNoiseDetection` | on | Suppresses keyboard clatter, where supported |
 
-The SDK sets these explicitly instead of inheriting LiveKit's defaults, so upgrading `livekit_client` can't change call quality silently.
+The SDK sets these explicitly instead of inheriting the WebRTC library's defaults, so a dependency upgrade can't change call quality silently.
 
 ## Where processing runs
 
@@ -34,7 +34,7 @@ const VaaniAudioOptions(
 
 **When to change it:** Android phones vary a lot. Some built-in echo cancellers are weak, and the agent then hears itself on speakerphone. If you see that on particular devices, set `echoCancellationMode: VaaniAudioProcessing.software`. It costs a little CPU and behaves the same on every phone.
 
-> The processing modes wrap an API that `livekit_client` marks **experimental**. They work today but may change in a future LiveKit release. The on/off flags are stable.
+> The processing modes wrap an API that the WebRTC library marks **experimental**. They work today but may change in a future release. The on/off flags are stable.
 
 ## Turning processing off
 
@@ -52,7 +52,7 @@ These options run on the device. The Vaani agent pipeline may add its own noise 
 
 | Device | Result |
 |---|---|
-| vivo I2208, Android 14 (physical) | With the defaults, `getUserMedia(audio)` received every flag as `true`, including `googHighpassFilter` (LiveKit's own default is off), and WebRTC turned on the phone's built-in AEC and NS (`EnableBuiltInAEC(1)`, `EnableBuiltInNS(1)`). Two-way conversation worked |
+| vivo I2208, Android 14 (physical) | With the defaults, `getUserMedia(audio)` received every flag as `true`, including `googHighpassFilter` (the library's own default is off), and WebRTC turned on the phone's built-in AEC and NS (`EnableBuiltInAEC(1)`, `EnableBuiltInNS(1)`). Two-way conversation worked |
 | iPhone 17 Pro simulator, iOS 26.5 | Two-way conversation worked. Simulators can't show echo-cancellation quality |
 
 **Test echo cancellation on a real phone on speakerphone in a noisy room.** Emulators and simulators route audio through the Mac and can't show it.

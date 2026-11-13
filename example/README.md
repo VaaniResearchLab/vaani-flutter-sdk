@@ -1,17 +1,37 @@
-# vaani_flutter_sdk_example
+# vaani_flutter_sdk example
 
-A new Flutter project.
+A call screen for a Vaani voice agent, built with `vaani_flutter_sdk`. It shows:
 
-## Getting Started
+- Start and end a call (`VaaniVoiceSession.withApiKey`, `start()`, `end()`)
+- Call state
+- Live transcripts for both sides
+- Mute and unmute
+- Speaking indicators for you and the agent
 
-This project is a starting point for a Flutter application.
+The iOS and Android projects are included, with microphone permissions already set.
 
-A few resources to get you started if this is your first Flutter project:
+## Run it
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+1. Copy the credentials template and fill in your API key and agent ID (from
+   [platform.vaani.dev](https://platform.vaani.dev)):
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+   ```bash
+   cp vaani_defines.json.example vaani_defines.json   # git-ignored
+   ```
+
+2. Run on a device or simulator:
+
+   ```bash
+   flutter pub get
+   flutter run --dart-define-from-file=vaani_defines.json
+   ```
+
+Each call dispatches a real agent and may use wallet credit.
+
+Test the user's voice on a physical Android phone or the iOS Simulator. On
+macOS, Android emulator mic input doesn't reach the agent. Test echo
+cancellation on a real phone on speakerphone.
+
+The API key is compiled into the app here, which is fine for development. For
+production, dispatch from your backend; see
+[Dispatch and credentials](../docs/dispatch-and-credentials.md#production-dispatch-from-your-backend).

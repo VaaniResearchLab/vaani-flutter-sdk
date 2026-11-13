@@ -6,22 +6,26 @@ This guide takes you from an empty Flutter app to a working voice call with a Va
 
 | | Minimum | Why |
 |---|---|---|
-| Flutter / Dart | 3.38 / 3.10 | Required by `livekit_client` 2.13 |
-| iOS | 13.0 | LiveKit's WebRTC build |
-| Android | minSdk 21 | LiveKit's WebRTC build |
-| Vaani | An API key and an agent ID | Both come from [app.vaanivoice.ai](https://app.vaanivoice.ai) |
+| Flutter / Dart | 3.38 / 3.10 | Required by the WebRTC dependency |
+| iOS | 13.0 | Required by the WebRTC dependency |
+| Android | minSdk 21 | Required by the WebRTC dependency |
+| Vaani | An API key and an agent ID | Both come from [platform.vaani.dev](https://platform.vaani.dev) |
 
 To get an API key, go to **Settings → API Keys → Generate API Key** in the Vaani dashboard. The key is shown only once.
 
 ## 1. Add the dependency
 
+The package is not on pub.dev yet. Add it as a git dependency:
+
 ```yaml
 dependencies:
   vaani_flutter_sdk:
-    path: ../vaani-flutter-sdk   # or git: / hosted once published
+    git:
+      url: https://github.com/VaaniResearchLab/vaani-flutter-sdk.git
+      ref: main
 ```
 
-`livekit_client` comes along as a transitive dependency. You only need to import it yourself to use the raw LiveKit `Room`.
+Or, with a local checkout, `path: ../vaani-flutter-sdk`.
 
 ## 2. Platform setup
 
@@ -124,12 +128,11 @@ class _CallScreenState extends State<CallScreen> {
 
 ## 5. Run the example app
 
-The repo ships a complete call screen with transcripts, a mute button and speaking indicators:
+The repo ships a complete call screen with transcripts, a mute button and speaking indicators. Its iOS and Android projects already have the microphone permissions:
 
 ```bash
 cd example
-flutter create --platforms=android,ios .   # once: generates ios/ and android/
-# add the permissions from step 2 to the generated files
+cp vaani_defines.json.example vaani_defines.json   # fill in your key and agent ID
 flutter run --dart-define-from-file=vaani_defines.json
 ```
 

@@ -5,7 +5,7 @@ Guides for building voice-agent features with `vaani_flutter_sdk` on iOS and And
 | Guide | Read it when |
 |---|---|
 | [Getting started](getting-started.md) | You're adding the SDK to an app for the first time |
-| [Architecture](architecture.md) | You want to know how dispatch, LiveKit and the session fit together |
+| [Architecture](architecture.md) | You want to know how dispatch, the WebRTC room and the session fit together |
 | [Dispatch and credentials](dispatch-and-credentials.md) | You're choosing between `trigger-call` and the session flow, or moving the API key to your backend |
 | [Voice sessions](voice-session.md) | You're building the call screen: state, transcripts, mute, speaking indicators |
 | [Audio processing](audio-processing.md) | You're tuning echo cancellation and noise suppression |
@@ -19,7 +19,7 @@ Guides for building voice-agent features with `vaani_flutter_sdk` on iOS and And
 
 ```dart
 final session = VaaniVoiceSession.withApiKey(apiKey: key, agentId: agentId);
-await session.start();          // dispatch → join LiveKit room → mic on
+await session.start();          // dispatch → join the call → mic on
 session.transcripts.listen(print);
 await session.end();
 await session.dispose();

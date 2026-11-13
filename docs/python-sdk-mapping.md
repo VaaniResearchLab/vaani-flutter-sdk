@@ -1,6 +1,6 @@
 # Python SDK mapping
 
-`vaani_flutter_sdk` ports the dispatch and WebRTC parts of the Python [`vaani-sdk`](https://pypi.org/project/vaani-sdk/) (synced with **0.3.2**). Endpoints and JSON fields are identical. Names follow Dart conventions.
+`vaani_flutter_sdk` ports the dispatch and WebRTC parts of the Python [`vaani-sdk`](https://pypi.org/project/vaani-sdk/) (synced with **0.3.3**). Endpoints and JSON fields are identical. Names follow Dart conventions.
 
 ## Client and endpoints
 
@@ -66,4 +66,4 @@ These are server-side administration and belong on a backend: call history, tran
 
 ## Only in Dart
 
-`VaaniVoiceSession`, `VaaniCredentialsProvider`, `VaaniTokenSource`, `VaaniAudioOptions`, `VaaniTranscript`, and `VaaniAgentTimeoutException`. These are the mobile pieces with no Python equivalent.
+`VaaniVoiceSession`, `VaaniCredentialsProvider`, `VaaniAudioOptions`, `VaaniTranscript`, and `VaaniAgentTimeoutException`. These are the mobile pieces with no Python equivalent.
